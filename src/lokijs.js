@@ -4053,7 +4053,16 @@
       //Run map function over each object in the resultset
       for (var j = 0; j < leftDataLength; j++) {
         key = leftKeyisFunction ? leftJoinKey(leftData[j]) : leftData[j][leftJoinKey];
-        result.push(mapFun(leftData[j], joinMap[key] || {}));
+        if (Array.isArray(key)) {
+          var len = key.length;
+          var res = new Array(len);
+          while (len--) {
+            res[len] = joinMap[key[len]];
+          }
+          result.push(mapFun(leftData[j], res || []));
+        } else {
+          result.push(mapFun(leftData[j], joinMap[key] || {}));
+        }
       }
 
       //return return a new resultset with no filters
