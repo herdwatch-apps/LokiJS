@@ -831,6 +831,11 @@
     LokiEventEmitter.prototype.emit = function (eventName) {
       var self = this;
       var selfArgs;
+
+      if(this.disableEmitEvents && (eventName === 'insert' || eventName === 'update' || eventName === 'pre-insert' || eventName === 'pre-update')){
+        return;
+      }
+
       if (eventName && this.events[eventName]) {
         if (this.events[eventName].length) {
           selfArgs = Array.prototype.slice.call(arguments, 1);
@@ -4969,6 +4974,7 @@
      * @param {boolean} [options.adaptiveBinaryIndices=true] - collection indices will be actively rebuilt rather than lazily
      * @param {boolean} [options.asyncListeners=false] - whether listeners are invoked asynchronously
      * @param {boolean} [options.disableMeta=false] - set to true to disable meta property on documents
+     * @param {boolean} [options.disableEmitEvents=false] - set to true to disable emit events
      * @param {boolean} [options.disableChangesApi=true] - set to false to enable Changes API
      * @param {boolean} [options.disableDeltaChangesApi=true] - set to false to enable Delta Changes API (requires Changes API, forces cloning)
      * @param {boolean} [options.autoupdate=false] - use Object.observe to update objects automatically
@@ -5056,6 +5062,8 @@
 
       // disable track changes
       this.disableChangesApi = options.hasOwnProperty('disableChangesApi') ? options.disableChangesApi : true;
+
+      this.disableEmitEvents = options.hasOwnProperty('disableEmitEvents') ? options.disableChangesApi : false;
 
       // disable delta update object style on changes
       this.disableDeltaChangesApi = options.hasOwnProperty('disableDeltaChangesApi') ? options.disableDeltaChangesApi : true;
@@ -5199,6 +5207,10 @@
       this.setChangesApi = function (enabled) {
         self.disableChangesApi = !enabled;
         if (!enabled) { self.disableDeltaChangesApi = false; }
+      };
+
+      this.setDisableEmitEventsStatus = function (enabled) {
+        self.disableEmitEvents = enabled;
       };
 
       this.on('delete', function deleteCallback(obj) {
