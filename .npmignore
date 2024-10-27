@@ -6,3 +6,5 @@ jsdoc/
 tutorials/
 spec/
 coverage/
+presentations/
+.github/
