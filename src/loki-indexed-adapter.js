@@ -9,19 +9,18 @@
 */
 
 (function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD
-        define([], factory);
-    } else if (typeof exports === 'object') {
-        // Node, CommonJS-like
-        module.exports = factory();
-    } else {
-        // Browser globals (root is window)
-        root.LokiIndexedAdapter = factory();
-    }
-}(this, function () {
-  return (function() {
-
+  if (typeof define === 'function' && define.amd) {
+    // AMD
+    define([], factory);
+  } else if (typeof exports === 'object') {
+    // Node, CommonJS-like
+    module.exports = factory();
+  } else {
+    // Browser globals (root is window)
+    root.LokiIndexedAdapter = factory();
+  }
+})(this, function () {
+  return (function () {
     /**
      * Loki persistence adapter class for indexedDb.
      *     This class fulfills abstract adapter interface which can be applied to other storage methods.
@@ -40,13 +39,11 @@
      * @param {object=} options Configuration options for the adapter
      * @param {boolean} options.closeAfterSave Whether the indexedDB database should be closed after saving.
      */
-    function LokiIndexedAdapter(appname, options)
-    {
+    function LokiIndexedAdapter(appname, options) {
       this.app = 'loki';
       this.options = options || {};
 
-      if (typeof (appname) !== 'undefined')
-      {
+      if (typeof appname !== 'undefined') {
         this.app = appname;
       }
 
@@ -61,8 +58,7 @@
     /**
      * Used for closing the indexeddb database.
      */
-    LokiIndexedAdapter.prototype.closeDatabase = function ()
-    {
+    LokiIndexedAdapter.prototype.closeDatabase = function () {
       if (this.catalog && this.catalog.db) {
         this.catalog.db.close();
         this.catalog.db = null;
@@ -75,8 +71,7 @@
      * @returns {boolean} true if indexeddb is available, false if not.
      * @memberof LokiIndexedAdapter
      */
-    LokiIndexedAdapter.prototype.checkAvailability = function()
-    {
+    LokiIndexedAdapter.prototype.checkAvailability = function () {
       if (typeof indexedDB !== 'undefined' && indexedDB) return true;
 
       return false;
@@ -97,14 +92,13 @@
      * @param {function} callback - callback should accept string param containing serialized db string.
      * @memberof LokiIndexedAdapter
      */
-    LokiIndexedAdapter.prototype.loadDatabase = function(dbname, callback)
-    {
+    LokiIndexedAdapter.prototype.loadDatabase = function (dbname, callback) {
       var appName = this.app;
       var adapter = this;
 
       // lazy open/create db reference so dont -need- callback in constructor
       if (this.catalog === null || this.catalog.db === null) {
-        this.catalog = new LokiCatalog(function(cat) {
+        this.catalog = new LokiCatalog(function (cat) {
           adapter.catalog = cat;
 
           adapter.loadDatabase(dbname, callback);
@@ -114,15 +108,14 @@
       }
 
       // lookup up db string in AKV db
-      this.catalog.getAppKey(appName, dbname, function(result) {
-        if (typeof (callback) === 'function') {
+      this.catalog.getAppKey(appName, dbname, function (result) {
+        if (typeof callback === 'function') {
           if (result.id === 0) {
             callback(null);
             return;
           }
           callback(result.val);
-        }
-        else {
+        } else {
           // support console use of api
           console.log(result.val);
         }
@@ -148,17 +141,15 @@
      * @param {function} callback - (Optional) callback passed obj.success with true or false
      * @memberof LokiIndexedAdapter
      */
-    LokiIndexedAdapter.prototype.saveDatabase = function(dbname, dbstring, callback)
-    {
+    LokiIndexedAdapter.prototype.saveDatabase = function (dbname, dbstring, callback) {
       var appName = this.app;
       var adapter = this;
 
       function saveCallback(result) {
         if (result && result.success === true) {
           callback(null);
-        }
-        else {
-          callback(new Error("Error saving database"));
+        } else {
+          callback(new Error('Error saving database'));
         }
 
         if (adapter.options.closeAfterSave) {
@@ -168,8 +159,8 @@
 
       // lazy open/create db reference so dont -need- callback in constructor
       if (this.catalog === null || this.catalog.db === null) {
-        this.catalog = new LokiCatalog(function(cat) {
-          adapter.saveDatabase(dbname, dbstring, saveCallback);
+        this.catalog = new LokiCatalog(function (cat) {
+          adapter.saveDatabase(dbname, dbstring, callback);
         });
 
         return;
@@ -196,14 +187,13 @@
      * @param {function=} callback - (Optional) executed on database delete
      * @memberof LokiIndexedAdapter
      */
-    LokiIndexedAdapter.prototype.deleteDatabase = function(dbname, callback)
-    {
+    LokiIndexedAdapter.prototype.deleteDatabase = function (dbname, callback) {
       var appName = this.app;
       var adapter = this;
 
       // lazy open/create db reference and pass callback ahead
       if (this.catalog === null || this.catalog.db === null) {
-        this.catalog = new LokiCatalog(function(cat) {
+        this.catalog = new LokiCatalog(function (cat) {
           adapter.catalog = cat;
 
           adapter.deleteDatabase(dbname, callback);
@@ -213,12 +203,12 @@
       }
 
       // catalog was already initialized, so just lookup object and delete by id
-      this.catalog.getAppKey(appName, dbname, function(result) {
+      this.catalog.getAppKey(appName, dbname, function (result) {
         var id = result.id;
 
         if (id !== 0) {
           adapter.catalog.deleteAppKey(id, callback);
-        } else if (typeof (callback) === 'function') {
+        } else if (typeof callback === 'function') {
           callback({ success: true });
         }
       });
@@ -234,10 +224,10 @@
      * @param {string} dbname - the base filename which container, partitions, or pages are derived
      * @memberof LokiIndexedAdapter
      */
-    LokiIndexedAdapter.prototype.deleteDatabasePartitions = function(dbname) {
-      var self=this;
-      this.getDatabaseList(function(result) {
-        result.forEach(function(str) {
+    LokiIndexedAdapter.prototype.deleteDatabasePartitions = function (dbname) {
+      var self = this;
+      this.getDatabaseList(function (result) {
+        result.forEach(function (str) {
           if (str.startsWith(dbname)) {
             self.deleteDatabase(str);
           }
@@ -259,14 +249,13 @@
      * @param {function} callback - should accept array of database names in the catalog for current app.
      * @memberof LokiIndexedAdapter
      */
-    LokiIndexedAdapter.prototype.getDatabaseList = function(callback)
-    {
+    LokiIndexedAdapter.prototype.getDatabaseList = function (callback) {
       var appName = this.app;
       var adapter = this;
 
       // lazy open/create db reference so dont -need- callback in constructor
       if (this.catalog === null || this.catalog.db === null) {
-        this.catalog = new LokiCatalog(function(cat) {
+        this.catalog = new LokiCatalog(function (cat) {
           adapter.catalog = cat;
 
           adapter.getDatabaseList(callback);
@@ -277,18 +266,17 @@
 
       // catalog already initialized
       // get all keys for current appName, and transpose results so just string array
-      this.catalog.getAppKeys(appName, function(results) {
+      this.catalog.getAppKeys(appName, function (results) {
         var names = [];
 
-        for(var idx = 0; idx < results.length; idx++) {
+        for (var idx = 0; idx < results.length; idx++) {
           names.push(results[idx].key);
         }
 
-        if (typeof (callback) === 'function') {
+        if (typeof callback === 'function') {
           callback(names);
-        }
-        else {
-          names.forEach(function(obj) {
+        } else {
+          names.forEach(function (obj) {
             console.log(obj);
           });
         }
@@ -304,14 +292,13 @@
      * @param {function} callback - (Optional) callback to accept result array.
      * @memberof LokiIndexedAdapter
      */
-    LokiIndexedAdapter.prototype.getCatalogSummary = function(callback)
-    {
+    LokiIndexedAdapter.prototype.getCatalogSummary = function (callback) {
       var appName = this.app;
       var adapter = this;
 
       // lazy open/create db reference
       if (this.catalog === null || this.catalog.db === null) {
-        this.catalog = new LokiCatalog(function(cat) {
+        this.catalog = new LokiCatalog(function (cat) {
           adapter.catalog = cat;
 
           adapter.getCatalogSummary(callback);
@@ -322,15 +309,11 @@
 
       // catalog already initialized
       // get all keys for current appName, and transpose results so just string array
-      this.catalog.getAllKeys(function(results) {
+      this.catalog.getAllKeys(function (results) {
         var entries = [];
-        var obj,
-          size,
-          oapp,
-          okey,
-          oval;
+        var obj, size, oapp, okey, oval;
 
-        for(var idx = 0; idx < results.length; idx++) {
+        for (var idx = 0; idx < results.length; idx++) {
           obj = results[idx];
           oapp = obj.app || '';
           okey = obj.key || '';
@@ -339,14 +322,13 @@
           // app and key are composited into an appkey column so we will mult by 2
           size = oapp.length * 2 + okey.length * 2 + oval.length + 1;
 
-          entries.push({ "app": obj.app, "key": obj.key, "size": size });
+          entries.push({ app: obj.app, key: obj.key, size: size });
         }
 
-        if (typeof (callback) === 'function') {
+        if (typeof callback === 'function') {
           callback(entries);
-        }
-        else {
-          entries.forEach(function(obj) {
+        } else {
+          entries.forEach(function (obj) {
             console.log(obj);
           });
         }
@@ -358,79 +340,75 @@
      *    This non-interface class implements the actual persistence.
      *    Used by the IndexedAdapter class.
      */
-    function LokiCatalog(callback)
-    {
+    function LokiCatalog(callback) {
       this.db = null;
       this.initializeLokiCatalog(callback);
     }
 
-    LokiCatalog.prototype.initializeLokiCatalog = function(callback) {
+    LokiCatalog.prototype.initializeLokiCatalog = function (callback) {
       var openRequest = indexedDB.open('LokiCatalog', 1);
       var cat = this;
 
       // If database doesn't exist yet or its version is lower than our version specified above (2nd param in line above)
-      openRequest.onupgradeneeded = function(e) {
+      openRequest.onupgradeneeded = function (e) {
         var thisDB = e.target.result;
         if (thisDB.objectStoreNames.contains('LokiAKV')) {
           thisDB.deleteObjectStore('LokiAKV');
         }
 
-        if(!thisDB.objectStoreNames.contains('LokiAKV')) {
-          var objectStore = thisDB.createObjectStore('LokiAKV', { keyPath: 'id', autoIncrement:true });
-          objectStore.createIndex('app', 'app', {unique:false});
-          objectStore.createIndex('key', 'key', {unique:false});
+        if (!thisDB.objectStoreNames.contains('LokiAKV')) {
+          var objectStore = thisDB.createObjectStore('LokiAKV', { keyPath: 'id', autoIncrement: true });
+          objectStore.createIndex('app', 'app', { unique: false });
+          objectStore.createIndex('key', 'key', { unique: false });
           // hack to simulate composite key since overhead is low (main size should be in val field)
           // user (me) required to duplicate the app and key into comma delimited appkey field off object
           // This will allow retrieving single record with that composite key as well as
           // still supporting opening cursors on app or key alone
-          objectStore.createIndex('appkey', 'appkey', {unique:true});
+          objectStore.createIndex('appkey', 'appkey', { unique: true });
         }
       };
 
-      openRequest.onsuccess = function(e) {
+      openRequest.onsuccess = function (e) {
         cat.db = e.target.result;
-
-        if (typeof (callback) === 'function') callback(cat);
+        if (typeof callback === 'function') callback(cat);
       };
 
-      openRequest.onerror = function(e) {
+      openRequest.onerror = function (e) {
         throw e;
       };
     };
 
-    LokiCatalog.prototype.getAppKey = function(app, key, callback) {
+    LokiCatalog.prototype.getAppKey = function (app, key, callback) {
       var transaction = this.db.transaction(['LokiAKV'], 'readonly');
       var store = transaction.objectStore('LokiAKV');
       var index = store.index('appkey');
-      var appkey = app + "," + key;
+      var appkey = app + ',' + key;
       var request = index.get(appkey);
 
-      request.onsuccess = (function(usercallback) {
-        return function(e) {
+      request.onsuccess = (function (usercallback) {
+        return function (e) {
           var lres = e.target.result;
 
-          if (lres === null || typeof(lres) === 'undefined') {
+          if (lres === null || typeof lres === 'undefined') {
             lres = {
               id: 0,
-              success: false
+              success: false,
             };
           }
 
-          if (typeof(usercallback) === 'function') {
+          if (typeof usercallback === 'function') {
             usercallback(lres);
-          }
-          else {
+          } else {
             console.log(lres);
           }
         };
       })(callback);
 
-      request.onerror = (function(usercallback) {
-        return function(e) {
-          if (typeof(usercallback) === 'function') {
+      request.onerror = (function (usercallback) {
+        return function (e) {
+          if (typeof usercallback === 'function') {
             usercallback({ id: 0, success: false });
-          }
-          else {
+          } else {
             throw e;
           }
         };
@@ -442,12 +420,11 @@
       var store = transaction.objectStore('LokiAKV');
       var request = store.get(id);
 
-      request.onsuccess = (function(data, usercallback){
-        return function(e) {
-          if (typeof(usercallback) === 'function') {
+      request.onsuccess = (function (data, usercallback) {
+        return function (e) {
+          if (typeof usercallback === 'function') {
             usercallback(e.target.result, data);
-          }
-          else {
+          } else {
             console.log(e.target.result);
           }
         };
@@ -458,56 +435,52 @@
       var transaction = this.db.transaction(['LokiAKV'], 'readwrite');
       var store = transaction.objectStore('LokiAKV');
       var index = store.index('appkey');
-      var appkey = app + "," + key;
+      var appkey = app + ',' + key;
       var request = index.get(appkey);
 
       // first try to retrieve an existing object by that key
       // need to do this because to update an object you need to have id in object, otherwise it will append id with new autocounter and clash the unique index appkey
-      request.onsuccess = function(e) {
+      request.onsuccess = function (e) {
         var res = e.target.result;
 
         if (res === null || res === undefined) {
           res = {
-            app:app,
-            key:key,
+            app: app,
+            key: key,
             appkey: app + ',' + key,
-            val:val
+            val: val,
           };
-        }
-        else {
+        } else {
           res.val = val;
         }
 
         var requestPut = store.put(res);
 
-        requestPut.onerror = (function(usercallback) {
-          return function(e) {
-            if (typeof(usercallback) === 'function') {
+        requestPut.onerror = (function (usercallback) {
+          return function (e) {
+            if (typeof usercallback === 'function') {
               usercallback({ success: false });
-            }
-            else {
+            } else {
               console.error('LokiCatalog.setAppKey (set) onerror');
               console.error(request.error);
             }
           };
-
         })(callback);
 
-        requestPut.onsuccess = (function(usercallback) {
-          return function(e) {
-            if (typeof(usercallback) === 'function') {
+        requestPut.onsuccess = (function (usercallback) {
+          return function (e) {
+            if (typeof usercallback === 'function') {
               usercallback({ success: true });
             }
           };
         })(callback);
       };
 
-      request.onerror = (function(usercallback) {
-        return function(e) {
-          if (typeof(usercallback) === 'function') {
+      request.onerror = (function (usercallback) {
+        return function (e) {
+          if (typeof usercallback === 'function') {
             usercallback({ success: false });
-          }
-          else {
+          } else {
             console.error('LokiCatalog.setAppKey (get) onerror');
             console.error(request.error);
           }
@@ -520,18 +493,17 @@
       var store = transaction.objectStore('LokiAKV');
       var request = store.delete(id);
 
-      request.onsuccess = (function(usercallback) {
-        return function(evt) {
-          if (typeof(usercallback) === 'function') usercallback({ success: true });
+      request.onsuccess = (function (usercallback) {
+        return function (evt) {
+          if (typeof usercallback === 'function') usercallback({ success: true });
         };
       })(callback);
 
-      request.onerror = (function(usercallback) {
-        return function(evt) {
-          if (typeof(usercallback) === 'function') {
+      request.onerror = (function (usercallback) {
+        return function (evt) {
+          if (typeof usercallback === 'function') {
             usercallback({ success: false });
-          }
-          else {
+          } else {
             console.error('LokiCatalog.deleteAppKey raised onerror');
             console.error(request.error);
           }
@@ -539,7 +511,7 @@
       })(callback);
     };
 
-    LokiCatalog.prototype.getAppKeys = function(app, callback) {
+    LokiCatalog.prototype.getAppKeys = function (app, callback) {
       var transaction = this.db.transaction(['LokiAKV'], 'readonly');
       var store = transaction.objectStore('LokiAKV');
       var index = store.index('app');
@@ -554,8 +526,8 @@
       // this.data[] when done (similar to service)
       var localdata = [];
 
-      cursor.onsuccess = (function(data, callback) {
-        return function(e) {
+      cursor.onsuccess = (function (data, callback) {
+        return function (e) {
           var cursor = e.target.result;
           if (cursor) {
             var currObject = cursor.value;
@@ -563,30 +535,26 @@
             data.push(currObject);
 
             cursor.continue();
-          }
-          else {
-            if (typeof(callback) === 'function') {
+          } else {
+            if (typeof callback === 'function') {
               callback(data);
-            }
-            else {
+            } else {
               console.log(data);
             }
           }
         };
       })(localdata, callback);
 
-      cursor.onerror = (function(usercallback) {
-        return function(e) {
-          if (typeof(usercallback) === 'function') {
+      cursor.onerror = (function (usercallback) {
+        return function (e) {
+          if (typeof usercallback === 'function') {
             usercallback(null);
-          }
-          else {
+          } else {
             console.error('LokiCatalog.getAppKeys raised onerror');
             console.error(e);
           }
         };
       })(callback);
-
     };
 
     // Hide 'cursoring' and return array of { id: id, key: key }
@@ -597,8 +565,8 @@
 
       var localdata = [];
 
-      cursor.onsuccess = (function(data, callback) {
-        return function(e) {
+      cursor.onsuccess = (function (data, callback) {
+        return function (e) {
           var cursor = e.target.result;
           if (cursor) {
             var currObject = cursor.value;
@@ -606,27 +574,23 @@
             data.push(currObject);
 
             cursor.continue();
-          }
-          else {
-            if (typeof(callback) === 'function') {
+          } else {
+            if (typeof callback === 'function') {
               callback(data);
-            }
-            else {
+            } else {
               console.log(data);
             }
           }
         };
       })(localdata, callback);
 
-      cursor.onerror = (function(usercallback) {
-        return function(e) {
-          if (typeof(usercallback) === 'function') usercallback(null);
+      cursor.onerror = (function (usercallback) {
+        return function (e) {
+          if (typeof usercallback === 'function') usercallback(null);
         };
       })(callback);
-
     };
 
     return LokiIndexedAdapter;
-
-  }());
-}));
+  })();
+});
