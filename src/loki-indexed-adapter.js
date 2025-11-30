@@ -43,6 +43,11 @@
       this.app = 'loki';
       this.options = options || {};
 
+      // Helper for reproduce WebKit bug
+      // https://github.com/ionic-team/cordova-plugin-ionic-webview/issues/354
+      // https://github.com/ionic-team/capacitor/issues/7439
+      this.simulateErrorMessage = null;
+
       if (typeof appname !== 'undefined') {
         this.app = appname;
       }
@@ -145,11 +150,15 @@
       var appName = this.app;
       var adapter = this;
 
+      /**
+       * @param { {success: boolean, error: Error} } result
+       */
       function saveCallback(result) {
         if (result && result.success === true) {
           callback(null);
         } else {
-          callback(new Error('Error saving database'));
+          console.error('saveDatabase->saveCallback, Error saving database', result);
+          callback(result);
         }
 
         if (adapter.options.closeAfterSave) {
@@ -167,7 +176,15 @@
       }
 
       // set (add/update) entry to AKV database
-      this.catalog.setAppKey(appName, dbname, dbstring, saveCallback);
+      try {
+        if (this.simulateErrorMessage) {
+          throw new Error(this.simulateErrorMessage);
+        }
+        this.catalog.setAppKey(appName, dbname, dbstring, saveCallback);
+      } catch (error) {
+        saveCallback({success: false, error});
+      }
+
     };
 
     // alias
@@ -447,7 +464,7 @@
           res = {
             app: app,
             key: key,
-            appkey: app + ',' + key,
+            appkey: appkey,
             val: val,
           };
         } else {
@@ -459,7 +476,7 @@
         requestPut.onerror = (function (usercallback) {
           return function (e) {
             if (typeof usercallback === 'function') {
-              usercallback({ success: false });
+              usercallback({ success: false, error: requestPut.error });
             } else {
               console.error('LokiCatalog.setAppKey (set) onerror');
               console.error(request.error);
@@ -479,7 +496,7 @@
       request.onerror = (function (usercallback) {
         return function (e) {
           if (typeof usercallback === 'function') {
-            usercallback({ success: false });
+            usercallback({ success: false, error: request.error });
           } else {
             console.error('LokiCatalog.setAppKey (get) onerror');
             console.error(request.error);

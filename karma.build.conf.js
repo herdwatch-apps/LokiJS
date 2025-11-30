@@ -18,6 +18,7 @@ module.exports = function (config) {
     files: [
       'build/lokijs.min.js',
       'src/incremental-indexeddb-adapter.js',
+      'src/loki-indexed-adapter.js',
       'spec/helpers/assert-helpers.js',
       'spec/generic/*.js',
       'spec/browser/*.js'

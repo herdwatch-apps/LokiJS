@@ -24,6 +24,6 @@ jobs:
       - name: Publish
         uses: coactions/setup-xvfb@v1
         with:
-          run: npm publish --access public --tag next
+          run: npm publish --access public --tag ${{github.ref_name == 'develop' && 'next' || 'latest' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
