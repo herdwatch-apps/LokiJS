@@ -2940,6 +2940,11 @@
         // so next step will be to implement collection level dirty flags set on insert/update/remove
         // along with loki level isdirty() function which iterates all collections to see if any are dirty
 
+        // for pause autosave
+        if (!self.autosave) {
+          return;
+        }
+
         if (self.autosaveDirty() && !self.ignoreAutosave) {
           self.saveDatabase(callback);
         }
