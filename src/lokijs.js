@@ -6017,7 +6017,9 @@
 
       options = options || {};
 
-      this.data = [];
+      if(!this.getData){
+        this.data = [];
+      }
       this.idIndex = null;
       this.cachedIndex = null;
       this.cachedBinaryIndex = null;
