@@ -351,7 +351,9 @@
         // save collection metadata as separate chunk (but only if changed)
         if (collection.dirty || dirtyChunks.size || !incremental) {
           collection.idIndex = []; // this is recreated lazily
-          collection.data = [];
+          if(!this.getData){
+            collection.data = [];
+          }
           collection.idbVersionId = randomVersionId();
           collectionVersionIds.push({ name: collection.name, versionId: collection.idbVersionId });
 

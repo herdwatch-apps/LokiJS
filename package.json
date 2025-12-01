@@ -1,6 +1,6 @@
 {
   "name": "@herdwatch/lokijs",
-  "version": "1.5.12-dev.4",
+  "version": "1.5.12-dev.5",
   "description": "Fast document oriented javascript in-memory database",
   "homepage": "https://techfort.github.io/LokiJS/",
   "types": "index.d.ts",
