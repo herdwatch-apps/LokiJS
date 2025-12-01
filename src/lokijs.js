@@ -1789,7 +1789,7 @@
             get: function() {
               var data = this.getData();
               this.getData = null;
-              Object.defineProperty(this, 'data', { value: data });
+              Object.defineProperty(this, 'data', { value: data, writable: true });
               return data;
             }
             /* jshint loopfunc:false */
