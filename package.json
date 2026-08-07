@@ -1,6 +1,6 @@
 {
   "name": "@herdwatch/lokijs",
-  "version": "1.5.8-dev.9",
+  "version": "1.5.8-fix.1",
   "description": "Fast document oriented javascript in-memory database",
   "homepage": "http://lokijs.org",
   "types": "index.d.ts",
