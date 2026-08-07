@@ -1,5 +1,17 @@
 # LokiJS
 
+## Why this fork exists
+
+Forked from [upstream](https://github.com/techfort/LokiJS) because we needed IndexedDB persistence fixes for our Capacitor/Cordova mobile app and official TypeScript types that upstream doesn't ship.
+
+Published as [`@herdwatch/lokijs`](https://www.npmjs.com/package/@herdwatch/lokijs).
+
+Changes from upstream (diffed against upstream tag `v1.5.8`, matching our pinned `1.5.8-dev.9`):
+- Adds a hand-written `index.d.ts` so the library type-checks in our strict-TypeScript codebase (upstream ships no types).
+- Hardens the IndexedDB adapters for Capacitor/Cordova WebViews: per-database IndexedDB stores, an `onversionchange` recovery hook, and error callbacks instead of thrown exceptions on IDB open/blocked/upgrade — working around a known WebKit IndexedDB bug (see `ionic-team/cordova-plugin-ionic-webview#354` and `ionic-team/capacitor#7439`, referenced directly in the code comments).
+- Fixes a real bug where `LokiIndexedAdapter.saveDatabase()` always reported failure on the very first save (before the IndexedDB catalog finished lazily initializing), caused by threading the wrong callback through the retry path.
+- Adds performance options (`disableEmitEvents`, `ignoreAutosave`, `serializeDatabaseBeforeSave`, an adaptive-index override for batch inserts) and an `eqJoin` fix supporting array join keys.
+
 [![Join the chat at https://gitter.im/techfort/LokiJS](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/techfort/LokiJS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![alt CI-badge](https://travis-ci.org/techfort/LokiJS.svg?branch=master)
 [![npm version](https://badge.fury.io/js/lokijs.svg)](http://badge.fury.io/js/lokijs)
